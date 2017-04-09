@@ -6,13 +6,20 @@ using UnityEngine.UI;
 public class WorldManager : MonoBehaviour {
 
     public Text roleText;
+    public RawImage serverTex, clientTex;
     //camera used for image source when no hardware camera exists
     public Camera dummyCamera;
+    public static WorldManager Instance;
     //app can be either client receiving video image or server sending it
     bool roleServer;
     GameServer server;
     GameClient client;
     
+    void Awake()
+    {
+        Instance = this;
+    }
+
 	// Use this for initialization
 	void Start ()
     {
@@ -31,6 +38,8 @@ public class WorldManager : MonoBehaviour {
             client.Init();
             roleText.text = "role: client";
             dummyCamera.gameObject.SetActive(false);
+            serverTex.enabled = false;
+            clientTex.enabled = true;
         }
         else
         {
@@ -38,6 +47,8 @@ public class WorldManager : MonoBehaviour {
             server.Init();
             roleText.text = "role: server";
             dummyCamera.gameObject.SetActive(true);
+            serverTex.enabled = true;
+            clientTex.enabled = false;
         }
         roleServer = !roleServer;
     }

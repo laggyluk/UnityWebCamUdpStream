@@ -1,10 +1,12 @@
 using UnityEngine;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using UnityEngine.UI;
 
 public class GameClient : MonoBehaviour, INetEventListener
 {
-    public RenderTexture renderTex;
+    public RawImage clientRenderTex;
+    Texture2D clientTex;
 
     private NetManager _netClient;
 
@@ -15,6 +17,8 @@ public class GameClient : MonoBehaviour, INetEventListener
     private float _oldBallPosX;
     private float _lerpTime;
     bool imageInitialized;
+    //image chunks are written to this while we go
+    public static byte[] buffer;
 
     public void Init ()
     {
@@ -39,13 +43,8 @@ public class GameClient : MonoBehaviour, INetEventListener
         var peer = _netClient.GetFirstPeer();
         if (peer != null && peer.ConnectionState == ConnectionState.Connected)
         {
-            //Fixed delta set to 0.05
-            var pos = _clientBallInterpolated.transform.position;
-            pos.x = Mathf.Lerp(_oldBallPosX, _newBallPosX, _lerpTime);
-            _clientBallInterpolated.transform.position = pos;
-
-            //Basic lerp
-            _lerpTime += Time.deltaTime/Time.fixedDeltaTime;
+            clientTex.LoadRawTextureData(buffer);
+            clientTex.Apply();
         }
         else
         {
@@ -63,6 +62,7 @@ public class GameClient : MonoBehaviour, INetEventListener
         Debug.Log("[CLIENT] We received error " + socketErrorCode);
     }
 
+    
     public void OnNetworkReceive(NetPeer peer, NetDataReader reader)
     {
         if (!imageInitialized)
@@ -80,8 +80,9 @@ public class GameClient : MonoBehaviour, INetEventListener
                         int d;
                         if (int.TryParse(Utils.EatString(ref s), out d))
                         {
-                            renderTex = new RenderTexture(w, h, d);
-                            renderTex.Create();
+                            clientTex = new Texture2D(w, h, TextureFormat.RGB24, false);
+                            buffer = new byte[w * h * 24];//where 16 is fixed render texture bit depth
+                            clientRenderTex.texture = clientTex;
                         }
                     }    
                 }
@@ -89,16 +90,10 @@ public class GameClient : MonoBehaviour, INetEventListener
             }
             return;
         }
-        _newBallPosX = reader.GetFloat();
-
-        var pos = _clientBall.transform.position;
-
-        _oldBallPosX = pos.x;
-        pos.x = _newBallPosX;
-
-        _clientBall.transform.position = pos;
-
-        _lerpTime = 0f;
+        //partially fill buffer at given index
+        int start = reader.GetInt();
+        byte[] payload = reader.GetRemainingBytes();
+        System.Array.Copy(payload, 0, buffer, start, payload.Length);        
     }
 
     public void OnNetworkReceiveUnconnected(NetEndPoint remoteEndPoint, NetDataReader reader, UnconnectedMessageType messageType)

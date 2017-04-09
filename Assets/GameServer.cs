@@ -1,14 +1,19 @@
 using UnityEngine;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using System.IO;
+using System.Collections;
 
 public class GameServer : MonoBehaviour, INetEventListener
 {
+    public int chunksEachFrame = 10;
+    public int pixelsPerChunk = 10;
     public RenderTexture renderTex;
 
     private NetManager _netServer;
     private NetPeer _ourPeer;
     private NetDataWriter _dataWriter;
+    Texture2D bufTex;
 
     [SerializeField] private GameObject _serverBall;
 
@@ -20,6 +25,10 @@ public class GameServer : MonoBehaviour, INetEventListener
         _netServer.DiscoveryEnabled = true;
         _netServer.UpdateTime = 15;
         print("server initialized");
+        renderTex = new RenderTexture(renderTex.width, renderTex.height, 0, RenderTextureFormat.Default);
+        bufTex = new Texture2D(renderTex.width, renderTex.height,TextureFormat.RGB24,false);
+        
+        StartCoroutine(leUpdate());
     }
 
     public void Shutdown()
@@ -33,14 +42,37 @@ public class GameServer : MonoBehaviour, INetEventListener
         if(_netServer!=null) _netServer.PollEvents();
     }
 
-    void FixedUpdate()
+    byte[] buffer;
+
+    ///dump image and load it again
+
+    IEnumerator leUpdate()
     {
-        if (_ourPeer != null)
+        while (true)
         {
-            _serverBall.transform.Translate(1f * Time.fixedDeltaTime, 0f, 0f);
-            _dataWriter.Reset();
-            _dataWriter.Put(_serverBall.transform.position.x);
-            _ourPeer.Send(_dataWriter, SendOptions.Sequenced);
+            yield return new WaitForEndOfFrame();
+            if (_ourPeer != null)
+            {                
+                //read pixels from screen/render texutre                
+                bufTex.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+                bufTex.Apply();
+                buffer = bufTex.GetRawTextureData();                
+                File.WriteAllBytes(Application.dataPath + "/SavedScreen.png", bufTex.EncodeToPNG());
+                //send chunks of image
+                for (int j = 0; j < chunksEachFrame; ++j)
+                {
+                    int start = Random.Range(0, buffer.Length / pixelsPerChunk);
+                    _dataWriter.Reset();
+                    _dataWriter.Put(start);
+                    _dataWriter.PutBytesWithLength(buffer, start, pixelsPerChunk * 24);
+                    _ourPeer.Send(_dataWriter, SendOptions.Unreliable);
+                }
+                /*_serverBall.transform.Translate(1f * Time.fixedDeltaTime, 0f, 0f);
+                _dataWriter.Reset();
+                _dataWriter.Put(_serverBall.transform.position.x);
+                _ourPeer.Send(_dataWriter, SendOptions.Sequenced);
+                */
+            }
         }
     }
 
