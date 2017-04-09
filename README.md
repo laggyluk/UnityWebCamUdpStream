@@ -1,2 +1,3 @@
-# UnityWebCamUdpStream
-Little test project for sending image from camera to another device
+This is an attempt to establish one way video stream between two devices in Unity
+using:
+	https://github.com/RevenantX/LiteNetLib
