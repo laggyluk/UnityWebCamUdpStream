@@ -4,6 +4,8 @@ using LiteNetLib.Utils;
 
 public class GameServer : MonoBehaviour, INetEventListener
 {
+    public RenderTexture renderTex;
+
     private NetManager _netServer;
     private NetPeer _ourPeer;
     private NetDataWriter _dataWriter;
@@ -47,6 +49,10 @@ public class GameServer : MonoBehaviour, INetEventListener
     {
         Debug.Log("[SERVER] We have new peer " + peer.EndPoint);
         _ourPeer = peer;
+        NetDataWriter writer = new NetDataWriter();                 // Create writer class        
+        //send video resolution
+        writer.Put(string.Format("{0};{1};{2}",renderTex.width,renderTex.height,renderTex.depth));
+        peer.Send(writer, SendOptions.ReliableOrdered);             // Send with reliability
     }
 
     public void OnPeerDisconnected(NetPeer peer, DisconnectReason reason, int socketErrorCode)

@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class WorldManager : MonoBehaviour {
 
     public Text roleText;
-
+    //camera used for image source when no hardware camera exists
+    public Camera dummyCamera;
     //app can be either client receiving video image or server sending it
     bool roleServer;
     GameServer server;
@@ -29,12 +30,14 @@ public class WorldManager : MonoBehaviour {
             server.Shutdown();
             client.Init();
             roleText.text = "role: client";
+            dummyCamera.gameObject.SetActive(false);
         }
         else
         {
             client.Shutdown();
             server.Init();
             roleText.text = "role: server";
+            dummyCamera.gameObject.SetActive(true);
         }
         roleServer = !roleServer;
     }

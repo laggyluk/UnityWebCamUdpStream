@@ -349,7 +349,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!20 &1114792077
 Camera:
   m_ObjectHideFlags: 0
@@ -842,6 +842,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aea082f0aed8a9d479d0c771a3cf230e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  renderTex: {fileID: 8400000, guid: af517b90f909a2749b2d4784f3f7f378, type: 2}
   _clientBall: {fileID: 1565656342}
   _clientBallInterpolated: {fileID: 1800542136}
 --- !u!114 &1670015976
@@ -855,6 +856,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e31e48c07e922af49af33ff69c665986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  renderTex: {fileID: 8400000, guid: af517b90f909a2749b2d4784f3f7f378, type: 2}
   _serverBall: {fileID: 1122261188}
 --- !u!114 &1670015977
 MonoBehaviour:
@@ -868,6 +870,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roleText: {fileID: 553448350}
+  dummyCamera: {fileID: 1114792077}
 --- !u!1 &1800542136
 GameObject:
   m_ObjectHideFlags: 0

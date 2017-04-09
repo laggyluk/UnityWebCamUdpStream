@@ -4,6 +4,8 @@ using LiteNetLib.Utils;
 
 public class GameClient : MonoBehaviour, INetEventListener
 {
+    public RenderTexture renderTex;
+
     private NetManager _netClient;
 
     [SerializeField] private GameObject _clientBall;
@@ -12,6 +14,7 @@ public class GameClient : MonoBehaviour, INetEventListener
     private float _newBallPosX;
     private float _oldBallPosX;
     private float _lerpTime;
+    bool imageInitialized;
 
     public void Init ()
     {
@@ -62,6 +65,30 @@ public class GameClient : MonoBehaviour, INetEventListener
 
     public void OnNetworkReceive(NetPeer peer, NetDataReader reader)
     {
+        if (!imageInitialized)
+        {
+            string s = reader.GetString(32);
+            if (s != string.Empty)
+            {
+                print("received: " + s);
+                int w = 0;
+                if (int.TryParse(Utils.EatString(ref s), out w))
+                {
+                    int h;
+                    if (int.TryParse(Utils.EatString(ref s), out h))
+                    {
+                        int d;
+                        if (int.TryParse(Utils.EatString(ref s), out d))
+                        {
+                            renderTex = new RenderTexture(w, h, d);
+                            renderTex.Create();
+                        }
+                    }    
+                }
+                imageInitialized = true;                
+            }
+            return;
+        }
         _newBallPosX = reader.GetFloat();
 
         var pos = _clientBall.transform.position;
