@@ -173,5 +173,17 @@ public static class Utils
         return false;
     }
 
+    public static int SomeTextureFormatsToBytes(TextureFormat tex)
+    {
+        switch (tex)
+        {
+            case TextureFormat.Alpha8: return 1;
+            case TextureFormat.ARGB32: return 4;
+            case TextureFormat.BGRA32: return 4;
+            case TextureFormat.RGB24: return 3;
+            default: UnityEngine.Debug.Log("texture format not recognized");
+                return 0;
+        }
+    }
 }
 

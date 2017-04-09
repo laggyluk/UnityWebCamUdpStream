@@ -5,11 +5,13 @@ using UnityEngine.UI;
 
 public class WorldManager : MonoBehaviour {
 
+    
     public Text roleText;
     public RawImage serverTex, clientTex;
     //camera used for image source when no hardware camera exists
     public Camera dummyCamera;
     public static WorldManager Instance;
+    public static TextureFormat textureFormat = TextureFormat.RGB24;
     //app can be either client receiving video image or server sending it
     bool roleServer;
     GameServer server;

@@ -80,8 +80,8 @@ public class GameClient : MonoBehaviour, INetEventListener
                         int d;
                         if (int.TryParse(Utils.EatString(ref s), out d))
                         {
-                            clientTex = new Texture2D(w, h, TextureFormat.RGB24, false);
-                            buffer = new byte[w * h * 24];//where 16 is fixed render texture bit depth
+                            clientTex = new Texture2D(w, h, WorldManager.textureFormat, false);
+                            buffer = new byte[w * h * Utils.SomeTextureFormatsToBytes(WorldManager.textureFormat)];//where 16 is fixed render texture bit depth
                             clientRenderTex.texture = clientTex;
                         }
                     }    
@@ -90,7 +90,7 @@ public class GameClient : MonoBehaviour, INetEventListener
             }
             return;
         }
-        //partially fill buffer at given index
+        //partially fill buffer at given index 
         int start = reader.GetInt();
         byte[] payload = reader.GetRemainingBytes();
         System.Array.Copy(payload, 0, buffer, start, payload.Length);        
