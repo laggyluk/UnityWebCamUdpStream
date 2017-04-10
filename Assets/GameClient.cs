@@ -9,13 +9,6 @@ public class GameClient : MonoBehaviour, INetEventListener
     Texture2D clientTex;
 
     private NetManager _netClient;
-
-    [SerializeField] private GameObject _clientBall;
-    [SerializeField] private GameObject _clientBallInterpolated;
-
-    private float _newBallPosX;
-    private float _oldBallPosX;
-    private float _lerpTime;
     bool imageInitialized;
     //image chunks are written to this while we go
     public static byte[] buffer;
@@ -80,8 +73,8 @@ public class GameClient : MonoBehaviour, INetEventListener
                         int d;
                         if (int.TryParse(Utils.EatString(ref s), out d))
                         {
-                            clientTex = new Texture2D(w, h, WorldManager.textureFormat, false);
-                            buffer = new byte[w * h * Utils.SomeTextureFormatsToBytes(WorldManager.textureFormat)];//where 16 is fixed render texture bit depth
+                            clientTex = new Texture2D(w, h, WorldManager.Inst.textureFormat, false);
+                            buffer = new byte[w * h * Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)];//where 16 is fixed render texture bit depth
                             clientRenderTex.texture = clientTex;
                         }
                     }    

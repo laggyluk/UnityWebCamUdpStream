@@ -3,18 +3,27 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using System.IO;
 using System.Collections;
+using UnityEngine.UI;
+
+public enum StreamMode { continous, randomChunks}
 
 public class GameServer : MonoBehaviour, INetEventListener
 {
-    public static int chunksEachFrame = 16;
-    public static int pixelsPerChunk = 16;
+    public StreamMode streamMode;    
+    public int chunksEachFrame = 512;
+    public int pixelsPerChunk = 8;
+    public Image blueBlinker;
     public RenderTexture renderTex;
-
+    public static float sendInterval = 1;
+    public static GameServer Inst;
     private NetManager _netServer;
     private NetPeer _ourPeer;
-    private NetDataWriter _dataWriter;
+    private NetDataWriter _dataWriter;    
 
-    [SerializeField] private GameObject _serverBall;
+    void Awake()
+    {
+        Inst = this;
+    }
 
     public void Init()
     {
@@ -28,7 +37,7 @@ public class GameServer : MonoBehaviour, INetEventListener
         //renderTex = new RenderTexture(renderTex.width, renderTex.height, 0, RenderTextureFormat.Default);
         
         
-        //StartCoroutine(leUpdate());
+        StartCoroutine(leUpdate());
     }
 
     public void Shutdown()
@@ -46,27 +55,45 @@ public class GameServer : MonoBehaviour, INetEventListener
 
     ///dump image and load it again
     int pixIndex = 0;
-    void FixedUpdate ()
+    IEnumerator leUpdate()
     {
-        //while (true)
+        while (true)
         {
-            //yield return new WaitForEndOfFrame();
+            yield return new WaitForSeconds(sendInterval);
+            //send chunks of image
             if (_ourPeer != null && buffer!=null)
             {
-                //send chunks of image
-                int bytesInChunk = pixelsPerChunk * Utils.SomeTextureFormatsToBytes(WorldManager.textureFormat);//rgb*8bits
+                //how much bytes we can fit in packet?
+                int bytesInChunk = pixelsPerChunk * Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat);//rgb*8bits
+                
                 for (int j = 0; j < chunksEachFrame; ++j)
                 {
-                    //pixIndex = bytesInChunk *  Random.Range(0, (buffer.Length / bytesInChunk)-1);
+                    if(streamMode==StreamMode.randomChunks)
+                        pixIndex = bytesInChunk *  Random.Range(0, (buffer.Length / bytesInChunk)-1);
                     _dataWriter.Reset();                    
                     _dataWriter.Put(pixIndex);                    
                     _dataWriter.Put(buffer, pixIndex, bytesInChunk);                    
                     _ourPeer.Send(_dataWriter, SendOptions.Unreliable);
-                    pixIndex += bytesInChunk;
-                    if (pixIndex >= buffer.Length) pixIndex = 0;
+                    if (streamMode == StreamMode.continous)
+                    {
+                        pixIndex += bytesInChunk;
+                        if (pixIndex >= buffer.Length) pixIndex = 0;
+                    }
                 }
+                if (!blinking) StartCoroutine(Blink());
             }
         }
+    }
+
+    bool blinking;
+    //blinks the small red rectangle indicator
+    IEnumerator Blink()
+    {
+        blinking = true;
+        blueBlinker.gameObject.SetActive(true);
+        yield return new WaitForSeconds(0.2f);
+        blueBlinker.gameObject.SetActive(false);
+        blinking = false;
     }
 
 
