@@ -11,7 +11,6 @@ public class GameServer : MonoBehaviour, INetEventListener
 {
     public StreamMode streamMode;    
     public int chunksEachFrame = 512;
-    public int pixelsPerChunk = 8;
     public Image blueBlinker;
     public RenderTexture renderTex;
     public static float sendInterval = 1;
@@ -64,15 +63,15 @@ public class GameServer : MonoBehaviour, INetEventListener
             if (_ourPeer != null && buffer!=null)
             {
                 //how much bytes we can fit in packet?
-                int bytesInChunk = pixelsPerChunk * Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat);//rgb*8bits
-                
+                int headerSize = sizeof(int);
+                int bytesInChunk = (_ourPeer.Mtu / Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)) - headerSize;                
                 for (int j = 0; j < chunksEachFrame; ++j)
                 {
                     if(streamMode==StreamMode.randomChunks)
-                        pixIndex = bytesInChunk *  Random.Range(0, (buffer.Length / bytesInChunk)-1);
+                        pixIndex = bytesInChunk *  Random.Range(0, (buffer.Length / bytesInChunk)-1);                    
                     _dataWriter.Reset();                    
                     _dataWriter.Put(pixIndex);                    
-                    _dataWriter.Put(buffer, pixIndex, bytesInChunk);                    
+                    _dataWriter.Put(buffer, pixIndex, Mathf.Min(bytesInChunk, buffer.Length-pixIndex));
                     _ourPeer.Send(_dataWriter, SendOptions.Unreliable);
                     if (streamMode == StreamMode.continous)
                     {
