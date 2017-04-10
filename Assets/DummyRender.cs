@@ -6,19 +6,41 @@ using UnityEngine.UI;
 
 public class DummyRender : MonoBehaviour {
 
+    public RawImage display;
     public static float grabIntervalSeconds = 1;
     public bool saveImgToFile = false;
     public Image redBlinker;
     public RenderTexture renderTex;
     Texture2D bufTex;
+    WebCamTexture WebCamTex;
 
     // Use this for initialization
     void Start ()
     {
-        //renderTex = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.Default);
-        //GetComponent<Camera>().targetTexture = renderTex;
         bufTex = new Texture2D(renderTex.width, renderTex.height, WorldManager.Inst.textureFormat, false);
-        
+        //try to initialize hardware camera
+        WebCamDevice[] devices = WebCamTexture.devices;
+        string backCamName = "";
+        for (int i = 0; i < devices.Length; i++)
+        {
+            Debug.Log("Device:" + devices[i].name + "IS FRONT FACING:" + devices[i].isFrontFacing);
+
+            if (!devices[i].isFrontFacing)
+            {
+                backCamName = devices[i].name;
+            }
+        }
+
+        if (backCamName != "")
+        {
+            WebCamTex = new WebCamTexture(backCamName, 1024, 768);
+            WebCamTex.Play();
+            display.texture = WebCamTex;
+        }
+        else
+        {
+            Debug.Log("Camera not found!");
+        }
     }
 
     float t = 0;
