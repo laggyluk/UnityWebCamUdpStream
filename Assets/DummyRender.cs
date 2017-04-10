@@ -12,7 +12,7 @@ public class DummyRender : MonoBehaviour {
     public Image redBlinker;
     public RenderTexture renderTex;
     Texture2D bufTex;
-    WebCamTexture WebCamTex;
+    public WebCamTexture WebCamTex;
 
     // Use this for initialization
     void Start ()
@@ -20,22 +20,23 @@ public class DummyRender : MonoBehaviour {
         bufTex = new Texture2D(renderTex.width, renderTex.height, WorldManager.Inst.textureFormat, false);
         //try to initialize hardware camera
         WebCamDevice[] devices = WebCamTexture.devices;
-        string backCamName = "";
+        string camName = "";
+        if(devices.Length>0) camName = devices[0].name;
+        //use back facing camera if it exists
         for (int i = 0; i < devices.Length; i++)
         {
-            Debug.Log("Device:" + devices[i].name + "IS FRONT FACING:" + devices[i].isFrontFacing);
-
+            Debug.Log("Device:" + devices[i].name + "IS FRONT FACING:" + devices[i].isFrontFacing);            
             if (!devices[i].isFrontFacing)
             {
-                backCamName = devices[i].name;
+                camName = devices[i].name;
             }
         }
-
-        if (backCamName != "")
+        if (camName != "")
         {
-            WebCamTex = new WebCamTexture(backCamName, 1024, 768);
+            WebCamTex = new WebCamTexture(camName, 1024, 768);
             WebCamTex.Play();
-            display.texture = WebCamTex;
+            GetComponent<Camera>().enabled = false;// .targetTexture = null;
+            display.texture = WebCamTex;            
         }
         else
         {
