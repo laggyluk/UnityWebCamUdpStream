@@ -34,7 +34,7 @@ public class GameClient : MonoBehaviour, INetEventListener
 	    _netClient.PollEvents();
 
         var peer = _netClient.GetFirstPeer();
-        if (peer != null && peer.ConnectionState == ConnectionState.Connected)
+        if (peer != null && peer.ConnectionState == ConnectionState.Connected && clientTex!=null)
         {
             clientTex.LoadRawTextureData(buffer);
             clientTex.Apply();
