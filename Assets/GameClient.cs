@@ -70,13 +70,9 @@ public class GameClient : MonoBehaviour, INetEventListener
                     int h;
                     if (int.TryParse(Utils.EatString(ref s), out h))
                     {
-                        int d;
-                        if (int.TryParse(Utils.EatString(ref s), out d))
-                        {
-                            clientTex = new Texture2D(w, h, WorldManager.Inst.textureFormat, false);
-                            buffer = new byte[w * h * Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)];//where 16 is fixed render texture bit depth
-                            clientRenderTex.texture = clientTex;
-                        }
+                        clientTex = new Texture2D(w, h, WorldManager.Inst.textureFormat, false);
+                        buffer = new byte[w * h * Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)];//where 16 is fixed render texture bit depth
+                        clientRenderTex.texture = clientTex;
                     }    
                 }
                 imageInitialized = true;                
