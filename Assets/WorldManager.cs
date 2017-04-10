@@ -8,7 +8,7 @@ public class WorldManager : MonoBehaviour {
     
     public Text roleText;
     public Slider grabIntervalSlider,sendIntervalSlider;
-    public Dropdown chunksDropdown, modeDropdown;
+    public Dropdown chunksDropdown, modeDropdown, compressionDropdown;
     public GameObject configPanel;
     public RawImage serverTex, clientTex;
     //camera used for image source when no hardware camera exists
@@ -33,7 +33,9 @@ public class WorldManager : MonoBehaviour {
         client = GetComponent<GameClient>();
         //load old settings
         grabIntervalSlider.value = PlayerPrefs.GetFloat("grabInterval", 0.5f);
-        modeDropdown.value = PlayerPrefs.GetInt("mode", 0);
+        modeDropdown.value = PlayerPrefs.GetInt("fragmentationMode", 0);
+        chunksDropdown.value = PlayerPrefs.GetInt("chunksCount", 2);
+        compressionDropdown.value = PlayerPrefs.GetInt("compressionMode", 0);
         sendIntervalSlider.value = PlayerPrefs.GetFloat("sendInterval", 0.1f);
         //read default role
         roleServer = !(PlayerPrefs.GetInt("roleServer", 0) > 0);
@@ -88,6 +90,12 @@ public class WorldManager : MonoBehaviour {
         GameServer.Inst.streamMode = (StreamMode)modeDropdown.value;
     }
 
+    public void OnCompressionModeChanged()
+    {
+        GameServer.Inst.compression = (CompressionMode)compressionDropdown.value;
+        
+    }
+
     public void OnShowConfigBtnClick()
     {
         configPanel.SetActive(!configPanel.activeSelf);
@@ -98,7 +106,9 @@ public class WorldManager : MonoBehaviour {
         //save settings
         PlayerPrefs.SetInt("roleServer", (roleServer ? 1 : 0));
         PlayerPrefs.SetFloat("grabInterval", grabIntervalSlider.value);
-        PlayerPrefs.SetInt("mode", modeDropdown.value);
+        PlayerPrefs.SetInt("fragmentationMode", modeDropdown.value);
+        PlayerPrefs.SetInt("chunksCount", chunksDropdown.value);
+        PlayerPrefs.SetInt("compressionMode", compressionDropdown.value);
         PlayerPrefs.SetFloat("sendInterval", sendIntervalSlider.value);
     }
 }

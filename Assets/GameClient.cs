@@ -84,8 +84,10 @@ public class GameClient : MonoBehaviour, INetEventListener
             return;
         }
         //partially fill buffer at given index 
-        int start = reader.GetInt();
+        int start = reader.GetInt();        
+        CompressionMode compMode = (CompressionMode)reader.GetByte();
         byte[] payload = reader.GetRemainingBytes();
+        if(compMode!=CompressionMode.none) payload = Compressor.UnPack(payload, compMode);
         System.Array.Copy(payload, 0, buffer, start, payload.Length);        
     }
 

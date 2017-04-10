@@ -9,7 +9,8 @@ public enum StreamMode { continous, randomChunks}
 
 public class GameServer : MonoBehaviour, INetEventListener
 {
-    public StreamMode streamMode;    
+    public StreamMode streamMode;
+    
     public int chunksEachFrame = 512;
     public Image blueBlinker;
     public RenderTexture renderTex;
@@ -17,7 +18,16 @@ public class GameServer : MonoBehaviour, INetEventListener
     public static GameServer Inst;
     private NetManager _netServer;
     private NetPeer _ourPeer;
-    private NetDataWriter _dataWriter;    
+    private NetDataWriter _dataWriter;
+    CompressionMode _compMode;
+    public CompressionMode compression
+    {
+        get { return _compMode; }
+        set {
+            _compMode = value;
+            _netServer.MergeEnabled = value != CompressionMode.none;
+        }
+    }
 
     void Awake()
     {
@@ -63,15 +73,37 @@ public class GameServer : MonoBehaviour, INetEventListener
             if (_ourPeer != null && buffer!=null)
             {
                 //how much bytes we can fit in packet?
-                int headerSize = sizeof(int);
-                int bytesInChunk = (_ourPeer.Mtu / Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)) - headerSize;                
+                int headerSize = sizeof(int)+1;//pix index, compression mode
+                int bytesInChunk = (_ourPeer.Mtu / Utils.SomeTextureFormatsToBytes(WorldManager.Inst.textureFormat)) - headerSize;                                
                 for (int j = 0; j < chunksEachFrame; ++j)
                 {
                     if(streamMode==StreamMode.randomChunks)
                         pixIndex = bytesInChunk *  Random.Range(0, (buffer.Length / bytesInChunk)-1);                    
                     _dataWriter.Reset();                    
-                    _dataWriter.Put(pixIndex);                    
-                    _dataWriter.Put(buffer, pixIndex, Mathf.Min(bytesInChunk, buffer.Length-pixIndex));
+                    _dataWriter.Put(pixIndex);
+
+                    if (compression != CompressionMode.none)
+                    {
+                        byte[] packed = new byte[bytesInChunk];
+                        System.Array.Copy(buffer, pixIndex, packed, 0, bytesInChunk);
+                        packed = Compressor.Pack(packed, compression);
+                        if (packed.Length < bytesInChunk)
+                        {
+                            _dataWriter.Put((byte)compression);
+                            _dataWriter.Put(packed, 0, packed.Length);
+                        }
+                        else //if compressed packet is larger than not compressed
+                        {
+                            print("compression ratio fail");
+                            _dataWriter.Put((byte)CompressionMode.none);
+                            _dataWriter.Put(buffer, pixIndex, Mathf.Min(bytesInChunk, buffer.Length - pixIndex));
+                        }
+                    }
+                    else
+                    {
+                        _dataWriter.Put((byte)CompressionMode.none);
+                        _dataWriter.Put(buffer, pixIndex, Mathf.Min(bytesInChunk, buffer.Length - pixIndex));
+                    }
                     _ourPeer.Send(_dataWriter, SendOptions.Unreliable);
                     if (streamMode == StreamMode.continous)
                     {
