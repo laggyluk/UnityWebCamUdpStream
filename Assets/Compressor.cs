@@ -10,8 +10,7 @@ public static class Compressor  {
     {
         if(mode==CompressionMode.LZF)
         {
-            byte[] compressed = CLZF2.Compress(data);
-            return compressed;
+            return CLZF2.Compress(data);
         }
         return data;
     }
@@ -20,8 +19,7 @@ public static class Compressor  {
     {
         if (mode == CompressionMode.LZF)
         {
-            byte[] decompressed = CLZF2.Decompress(data);
-            return decompressed;
+            return CLZF2.Decompress(data);
         }
         return data;
     }

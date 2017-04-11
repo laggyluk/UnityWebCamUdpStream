@@ -48,3 +48,4 @@ sysinfo.txt
 #**/[Gg]enerated/*.meta
 #**/[Ss]hared/**/*.meta
 #**/[Ss]hared/*.meta
+Assets/LiteNetLib/LiteNetLib.csproj.meta
